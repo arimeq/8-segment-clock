@@ -1,0 +1,49 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="theme-color" content="black"/>
+  <link rel="manifest" href="manifest.json">
+  <title>Digital Clock</title>
+  <link rel="stylesheet" href="./clock.css"/>
+</head>
+<body>
+    <div id="colors">
+      <div class="color red"></div>
+      <div class="color orange"></div>
+      <div class="color yellow"></div>
+      <div class="color green"></div>
+      <div class="color ocean"></div>
+      <div class="color blue"></div>
+      <div class="color darkblue"></div>
+    </div>
+    <div id="clock"></div>
+<script src="./clock.js"></script>
+<script>
+  window.onload = () => {
+    'use strict';
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+              .register('./sw.js');
+    }
+  }
+  let currentColor = 'red';
+  [...document.querySelector('#colors').children].forEach(div => {
+    div.addEventListener('click', function(e) {
+      switchColor(this.classList.item(1));
+    });
+  });
+  const clockEl = document.querySelector('#clock');
+  for (let i = 1; i <= 6; i++) {
+    clockEl.appendChild(generateSegment(`field-${i}`));
+    if (i === 2 || i === 4) {
+      clockEl.appendChild(generateDots());
+    }
+  }
+  writeClock();
+  const intrvl = setInterval(writeClock, 1000);
+</script>
+</body>
+</html>

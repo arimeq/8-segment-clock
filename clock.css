@@ -1,0 +1,52 @@
+:root {
+  --blue: #6161e5;
+  --darkblue: #0000ff;
+  --green: #00f545;
+  --yellow: #ccff00;
+  --ocean: #08d8ff;
+  --red: #a31010;
+  --orange: #e67700;
+  --glow-size: 15px;
+  --dim-opacity: 0.08;
+}
+
+body { background: black; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+#colors { position: absolute; display: flex; flex-flow: row nowrap; top: 10px; left: 10px; }
+#clock { white-space: nowrap; }
+.color { width: 20px; height: 20px; margin-right: 8px; }
+#colors .blue,
+.field .blue { background-color: var(--blue); }
+#colors .darkblue,
+.field .darkblue { background-color: var(--darkblue); }
+#colors .green,
+.field .green { background-color: var(--green); }
+#colors .yellow,
+.field .yellow { background-color: var(--yellow); }
+#colors .ocean,
+.field .ocean { background-color: var(--ocean); }
+#colors .red,
+.field .red { background-color: var(--red); }
+#colors .orange,
+.field .orange { background-color: var(--orange); }
+
+.field.blue { filter: drop-shadow(0 0 var(--glow-size) var(--blue)); }
+.field.darkblue { filter: drop-shadow(0 0 var(--glow-size) var(--darkblue)); }
+.field.green { filter: drop-shadow(0 0 var(--glow-size) var(--green)) }
+.field.yellow { filter: drop-shadow(0 0 var(--glow-size) var(--yellow)); }
+.field.ocean { filter: drop-shadow(0 0 var(--glow-size) var(--ocean)); }
+.field.red { filter: drop-shadow(0 0 var(--glow-size) var(--red)); }
+.field.orange { filter: drop-shadow(0 0 var(--glow-size) var(--orange)); }
+svg.field polygon { stroke: black; }
+svg.field .blue { fill: #6161e5; }
+svg.field .darkblue { fill: #0000ff; }
+svg.field .green { fill: #00f545; }
+svg.field .yellow { fill: #ccff00; }
+svg.field .ocean { fill: #08d8ff; }
+svg.field .red { fill: #a31010; }
+svg.field .orange { fill: #e67700; }
+svg.field .lit { opacity: 1; animation: 0.5s fadeIn; }
+svg.field .dim { opacity: var(--dim-opacity); }
+@keyframes fadeIn {
+  from { opacity: var(--dim-opacity); }
+  to { opacity: 1; }
+}
