@@ -1,5 +1,5 @@
 import { Field } from './field.js';
-import { Dots } from './dots';
+import { Dots } from './dots.js';
 
 const generateField = color => new Field(color);
 const generateDots = color => new Dots(color);
