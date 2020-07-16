@@ -1,43 +1,28 @@
-import { Field } from './segment.js';
+import { Field } from './field.js';
+import { Dots } from './dots';
 
 const generateField = color => new Field(color);
-
-const generateDots = (color) => {
-  const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgEl.setAttributeNS(null, 'width', '30');
-  svgEl.setAttributeNS(null, 'height', '200');
-  svgEl.setAttributeNS(null, 'version', '1.1');
-  svgEl.classList.add('field');
-  const createRect = y => {
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttributeNS(null, 'x', '10');
-    rect.setAttributeNS(null, 'y', y);
-    rect.setAttributeNS(null, 'width', '10');
-    rect.setAttributeNS(null, 'height', '10');
-    rect.classList.add(color);
-    return rect;
-  };
-  svgEl.appendChild(createRect(75));
-  svgEl.appendChild(createRect(125));
-  return svgEl;
-};
-
+const generateDots = color => new Dots(color);
 const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
-const clockFields = [];
+const numberFields = [];
+const allFields = [];
 
 export const buildClock = (anchor, color) => {
   for (let i = 1; i <= 6; i++) {
     const field = generateField(color);
-    clockFields.push(field);
+    numberFields.push(field);
+    allFields.push(field);
     anchor.appendChild(field.render());
     if (i === 2 || i === 4) {
-      anchor.appendChild(generateDots(color));
+      const dots = generateDots(color);
+      allFields.push(dots);
+      anchor.appendChild(dots.render());
     }
   }
 }
 
 export const writeClock = () => {
-  if (clockFields.length < 6) {
+  if (numberFields.length < 6) {
     return;
   }
   const tStr = showTime();
@@ -47,6 +32,8 @@ export const writeClock = () => {
     tArr.unshift(undefined);
   }
   tArr.forEach((num, idx) => {
-    clockFields[idx].display(Number(num));
+    numberFields[idx].display(Number(num));
   });
 };
+
+export const switchColor = color => allFields.forEach(field => field.setColor(color));

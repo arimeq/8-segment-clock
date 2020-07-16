@@ -20,26 +20,38 @@ export class Field {
   constructor(color) {
     this.color = color;
     this.segments = new Map();
+    this.segments.set('main', this._render());
     return this;
   }
 
-  render() {
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttributeNS(null, 'width', 100);
-    this.svg.setAttributeNS(null, 'height', 200);
-    this.svg.setAttributeNS(null, 'version', '1.1');
-    this.svg.classList.add(this.color);
-    this.svg.classList.add('field');
+  createPolygon(points) {
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttributeNS(null, 'points', points);
+    poly.classList.add(this.color);
+    poly.classList.add('dim');
+    return poly;
+  }
+
+  _render() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttributeNS(null, 'width', 100);
+    svg.setAttributeNS(null, 'height', 200);
+    svg.setAttributeNS(null, 'version', '1.1');
+    svg.classList.add('field', this.color);
     for (const [key, value] of pointsMap) {
       const poly = this.createPolygon(value);
       this.segments.set(key, poly)
-      this.svg.appendChild(poly);
+      svg.appendChild(poly);
     }
-    return this.svg;
+    return svg;
+  }
+
+  render() {
+    return this.segments.get('main');
   }
 
   setColor(color) {
-    this.svg.classList.replace(this.color, color);
+    this.segments.forEach(segm => segm.classList.replace(this.color, color));
     this.color = color;
   }
 
@@ -88,13 +100,4 @@ export class Field {
         dim(a, b, c, d, e, f, g);
     }
    }
-
-  createPolygon(points) {
-    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    poly.setAttributeNS(null, 'points', points);
-    poly.classList.add(this.color);
-    poly.classList.add('dim');
-    return poly;
-  }
-
 }

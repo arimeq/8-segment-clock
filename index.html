@@ -21,7 +21,7 @@
     <div id="clock"></div>
 <script src="./src/clock.js" type="module"></script>
 <script type="module">
-  import { buildClock, writeClock } from './src/clock.js';
+  import { buildClock, writeClock, switchColor } from './src/clock.js';
 
   window.onload = () => {
     'use strict';
@@ -31,18 +31,13 @@
               .register('./sw.js');
     }
   }
-  let currentColor = 'red';
-  const switchColor = color => {
-    document.querySelectorAll('svg, polygon, rect').forEach(poly => poly.classList.replace(currentColor, color));
-    currentColor = color;
-  };
   [...document.querySelector('#colors').children].forEach(div => {
-    div.addEventListener('click', function(e) {
+    div.addEventListener('click', function() {
       switchColor(this.classList.item(1));
     });
   });
   const clockEl = document.querySelector('#clock');
-  buildClock(clockEl, currentColor);
+  buildClock(clockEl, 'red');
   writeClock();
   const intrvl = setInterval(writeClock, 1000);
 </script>
