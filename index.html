@@ -23,6 +23,17 @@
 <script type="module">
   import { buildClock, writeClock, switchColor } from './src/clock.js';
 
+  /**
+   * Clock runner
+   */
+  function runClock() {
+    writeClock();
+    window.requestAnimationFrame(runClock);
+  }
+
+  /**
+   * Service worker setup
+   */
   window.onload = () => {
     'use strict';
 
@@ -31,15 +42,22 @@
               .register('./sw.js');
     }
   }
+
+  /**
+   * Poor man's config widget
+   */
   [...document.querySelector('#colors').children].forEach(div => {
     div.addEventListener('click', function() {
       switchColor(this.classList.item(1));
     });
   });
+
+  /**
+   * Build & run!
+   */
   const clockEl = document.querySelector('#clock');
   buildClock(clockEl, 'red');
-  writeClock();
-  const intrvl = setInterval(writeClock, 1000);
+  window.requestAnimationFrame(runClock);
 </script>
 </body>
 </html>
