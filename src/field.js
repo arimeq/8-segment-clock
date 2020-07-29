@@ -20,7 +20,7 @@ export class Field {
   constructor(color) {
     this.color = color;
     this.segments = new Map();
-    this.segments.set('main', this._render());
+    this.segments.set('main', this.render());
     return this;
   }
 
@@ -32,7 +32,10 @@ export class Field {
     return poly;
   }
 
-  _render() {
+  render() {
+    if (this.segments.has('main')) {
+      return this.segments.get('main');
+    }
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttributeNS(null, 'width', 100);
     svg.setAttributeNS(null, 'height', 200);
@@ -44,10 +47,6 @@ export class Field {
       svg.appendChild(poly);
     }
     return svg;
-  }
-
-  render() {
-    return this.segments.get('main');
   }
 
   setColor(color) {

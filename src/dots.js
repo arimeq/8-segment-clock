@@ -1,7 +1,7 @@
 export class Dots {
   constructor(color) {
     this.color = color;
-    this.segments = this._render();
+    this.segments = this.render();
     return this;
   }
 
@@ -20,7 +20,10 @@ export class Dots {
     this.color = color;
   }
 
-  _render() {
+  render() {
+    if (Array.isArray(this.segments)) {
+      return this.segments[0];
+    }
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttributeNS(null, 'width', '30');
     svg.setAttributeNS(null, 'height', '200');
@@ -31,9 +34,5 @@ export class Dots {
     svg.appendChild(topDot);
     svg.appendChild(botDot);
     return [svg, topDot, botDot];
-  }
-
-  render() {
-    return this.segments[0];
   }
 }
