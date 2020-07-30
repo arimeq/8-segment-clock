@@ -2,7 +2,7 @@
   "name": "Digital Clock",
   "short_name": "Clock",
   "lang": "en-US",
-  "start_url": "/clock/index.html",
+  "start_url": "/8-segment-clock/index.html",
   "display": "fullscreen",
   "orientation": "landscape",
   "theme_color": "#000000",
