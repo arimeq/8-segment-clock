@@ -54,6 +54,14 @@ export class Field {
     this.color = color;
   }
 
+  setColorValue(color) {
+    this.segments.forEach(segm => segm.style.fill = color);
+  }
+
+  resetColorValue(color) {
+    this.segments.forEach(segm => segm.style.fill = '');
+  }
+
   display(num) {
     const a = this.segments.get('a');
     const b = this.segments.get('b');

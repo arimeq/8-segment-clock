@@ -21,7 +21,10 @@
     <div id="clock"></div>
 <script src="./src/clock.js" type="module"></script>
 <script type="module">
-  import { buildClock, writeClock, switchColor } from './src/clock.js';
+  import {
+    buildClock, writeClock, switchColor,
+    setColor, resetColor
+  } from './src/clock.js';
 
   /**
    * Clock runner
@@ -58,6 +61,12 @@
   const clockEl = document.querySelector('#clock');
   buildClock(clockEl, 'red');
   window.requestAnimationFrame(runClock);
+
+  /**
+   * hax00r exports
+   */
+  window.setColor = setColor;
+  window.resetColor = resetColor;
 </script>
 </body>
 </html>

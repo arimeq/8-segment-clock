@@ -20,6 +20,14 @@ export class Dots {
     this.color = color;
   }
 
+  setColorValue(color) {
+    this.segments.forEach(segm => segm.style.fill = color);
+  }
+
+  resetColorValue(color) {
+    this.segments.forEach(segm => segm.style.fill = '');
+  }
+
   render() {
     if (Array.isArray(this.segments)) {
       return this.segments[0];

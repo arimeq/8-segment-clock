@@ -37,3 +37,5 @@ export const writeClock = () => {
 };
 
 export const switchColor = color => allFields.forEach(field => field.setColor(color));
+export const setColor = color => allFields.forEach(field => field.setColorValue(color));
+export const resetColor = () => allFields.forEach(field => field.resetColorValue());
