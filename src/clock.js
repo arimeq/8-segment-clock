@@ -6,6 +6,7 @@ const generateDots = color => new Dots(color);
 const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
 const numberFields = [];
 const allFields = [];
+let lastTime = showTime();
 
 export const buildClock = (anchor, color) => {
   for (let i = 1; i <= 6; i++) {
@@ -26,6 +27,10 @@ export const writeClock = () => {
     return;
   }
   const tStr = showTime();
+  if (tStr === lastTime) {
+    return;
+  }
+  lastTime = tStr;
   const tArr = tStr.split('');
   if (tArr[0] === '0') {
     tArr.shift();

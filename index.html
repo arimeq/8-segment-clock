@@ -22,6 +22,7 @@
 <script src="./src/clock.js" type="module"></script>
 <script type="module">
   import { buildClock, writeClock, switchColor } from './src/clock.js';
+  import { addColor, getColorFromHash } from './src/config.js';
 
   /**
    * Clock runner
@@ -38,8 +39,7 @@
     'use strict';
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-              .register('./sw.js');
+      navigator.serviceWorker.register('./sw.js');
     }
   }
 
@@ -47,16 +47,16 @@
    * Poor man's config widget
    */
   [...document.querySelector('#colors').children].forEach(div => {
-    div.addEventListener('click', function() {
-      switchColor(this.classList.item(1));
-    });
+    const color = div.classList.item(1);
+    addColor(color);
+    div.addEventListener('click', () => location.hash = color);
   });
-
+  window.addEventListener('hashchange', () => switchColor(getColorFromHash()));
   /**
    * Build & run!
    */
   const clockEl = document.querySelector('#clock');
-  buildClock(clockEl, 'red');
+  buildClock(clockEl, getColorFromHash());
   window.requestAnimationFrame(runClock);
 </script>
 </body>
