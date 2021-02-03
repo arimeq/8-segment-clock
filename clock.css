@@ -50,3 +50,68 @@ svg.field .dim { opacity: var(--dim-opacity); }
   from { opacity: var(--dim-opacity); }
   to { opacity: 1; }
 }
+#config {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+/* Pure CSS hamburger taken from https://codepen.io/erikterwan/pen/EVzeRP, MIT license */
+
+#config > input[type=checkbox] {
+  display: block;
+  width: 40px;
+  height: 32px;
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  cursor: pointer;
+  opacity: 0; /* hide this */
+  z-index: 2; /* and place it over the hamburger */
+  -webkit-touch-callout: none;
+}
+
+#config > span {
+  display: block;
+  width: 33px;
+  height: 4px;
+  margin-bottom: 5px;
+  position: relative;
+  background: #2c2c2c;
+  border-radius: 3px;
+  z-index: 1;
+  transform-origin: 4px 0px;
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              opacity 0.55s ease;
+}
+
+#config > span:first-child { transform-origin: 0% 0%; }
+#config > span:nth-last-child(2) { transform-origin: 0% 100%; }
+
+#config > input[type=checkbox]:checked ~ span {
+  opacity: 1;
+  transform: rotate(45deg) translate(-2px, -1px);
+}
+#config > input[type=checkbox]:checked ~ span:nth-last-child(3) {
+  opacity: 0;
+  transform: rotate(0deg) scale(0.2, 0.2);
+}
+#config > input[type=checkbox]:checked ~ span:nth-last-child(2) {
+  transform: rotate(-45deg) translate(0, -1px);
+}
+
+#colors {
+  position: absolute;
+  width: 300px;
+  margin-top: -136px;
+  margin-left: -17px;
+  padding: 50px;
+  padding-top: 125px;
+  -webkit-font-smoothing: antialiased;
+  /* to stop flickering of text in safari */
+  transform-origin: 0% 0%;
+  transform: translate(0, -100%);
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+}
+#config > input[type=checkbox]:checked ~ #colors { transform: none }
