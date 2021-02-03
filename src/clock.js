@@ -4,9 +4,12 @@ import { Dots } from './dots.js';
 const generateField = color => new Field(color);
 const generateDots = color => new Dots(color);
 const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
+const timeFormatRe = /(\d)(?=(\d{2})+(?!\d))/g;
+const formatTime = time => time.replace(timeFormatRe, '$1:');
 const numberFields = [];
 const allFields = [];
 let lastTime = showTime();
+let formattedTime = formatTime(lastTime);
 
 export const buildClock = (anchor, color) => {
   for (let i = 1; i <= 6; i++) {
@@ -28,9 +31,10 @@ export const writeClock = () => {
   }
   const tStr = showTime();
   if (tStr === lastTime) {
-    return;
+    return formattedTime;
   }
   lastTime = tStr;
+  formattedTime = formatTime(lastTime);
   const tArr = tStr.split('');
   if (tArr[0] === '0') {
     tArr.shift();
@@ -39,6 +43,7 @@ export const writeClock = () => {
   tArr.forEach((num, idx) => {
     numberFields[idx].display(Number(num));
   });
+  return formattedTime;
 };
 
 export const switchColor = color => allFields.forEach(field => field.setColor(color));
