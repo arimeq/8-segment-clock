@@ -62,6 +62,13 @@
    */
   buildClock(document.querySelector('#clock'), getColorFromHash());
   window.requestAnimationFrame(runClock);
+
+  /**
+   * Make sure screen is always on when run on Chrome
+   */
+  if ('wakeLock' in navigator) {
+    navigator.wakeLock.request();
+  }
 </script>
 </body>
 </html>
