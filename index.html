@@ -67,7 +67,10 @@
    * Make sure screen is always on when run on Chrome
    */
   if ('wakeLock' in navigator) {
-    navigator.wakeLock.request();
+    navigator.wakeLock.request()
+      .then(() => { console.log('wake log acquired'); })
+      .catch((e) => { alert('failed to acquire wake lock'); })
+      ;
   }
 </script>
 </body>
