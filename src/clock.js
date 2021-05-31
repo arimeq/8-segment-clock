@@ -44,7 +44,11 @@ export const writeClock = () => {
     tArr.unshift(undefined);
   }
   tArr.forEach((num, idx) => {
-    numberFields[idx].display(Number(num));
+    const field = numberFields[idx];
+    if (!field || typeof field.display !== 'function') {
+      return;
+    }
+    field.display(Number(num));
   });
   return formattedTime;
 };
