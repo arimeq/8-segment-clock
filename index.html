@@ -60,8 +60,7 @@
   /**
    * Build & run!
    */
-  buildClock(document.querySelector('#clock'), getColorFromHash());
-  window.requestAnimationFrame(runClock);
+  buildClock(document.querySelector('#clock'), getColorFromHash(), runClock);
 
   /**
    * Make sure screen is always on when run on Chrome

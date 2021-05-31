@@ -11,7 +11,7 @@ const allFields = [];
 let lastTime = showTime();
 let formattedTime = formatTime(lastTime);
 
-export const buildClock = (anchor, color) => {
+export const buildClock = (anchor, color, runner) => {
   for (let i = 1; i <= 6; i++) {
     const field = generateField(color);
     numberFields.push(field);
@@ -22,6 +22,9 @@ export const buildClock = (anchor, color) => {
       allFields.push(dots);
       anchor.appendChild(dots.render());
     }
+  }
+  if (typeof runner === 'function') {
+    runner();
   }
 }
 
