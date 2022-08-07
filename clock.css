@@ -1,11 +1,12 @@
 :root {
-  --blue: #6161e5;
-  --darkblue: #0000ff;
-  --green: #00f545;
-  --yellow: #ccff00;
-  --ocean: #08d8ff;
   --red: #a31010;
   --orange: #e67700;
+  --yellow: #ccff00;
+  --green: #00f545;
+  --ocean: #08d8ff;
+  --blue: #6161e5;
+  --darkblue: #0000ff;
+
   --glow-size: 15px;
   --dim-opacity: 0.08;
 }
@@ -37,19 +38,20 @@ body { background: black; display: flex; justify-content: center; align-items: c
 .field.red { filter: drop-shadow(0 0 var(--glow-size) var(--red)); }
 .field.orange { filter: drop-shadow(0 0 var(--glow-size) var(--orange)); }
 svg.field polygon { stroke: black; }
-svg.field .blue { fill: #6161e5; }
-svg.field .darkblue { fill: #0000ff; }
-svg.field .green { fill: #00f545; }
-svg.field .yellow { fill: #ccff00; }
-svg.field .ocean { fill: #08d8ff; }
-svg.field .red { fill: #a31010; }
-svg.field .orange { fill: #e67700; }
+svg.field .blue { fill: var(--blue); }
+svg.field .darkblue { fill: var(--darkblue); }
+svg.field .green { fill: var(--green); }
+svg.field .yellow { fill: var(--yellow); }
+svg.field .ocean { fill: var(--ocean); }
+svg.field .red { fill: var(--red); }
+svg.field .orange { fill: var(--orange); }
 svg.field .lit { opacity: 1; animation: 0.5s fadeIn; }
 svg.field .dim { opacity: var(--dim-opacity); }
 @keyframes fadeIn {
   from { opacity: var(--dim-opacity); }
   to { opacity: 1; }
 }
+
 #config {
   position: absolute;
   top: 20px;
