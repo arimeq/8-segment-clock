@@ -1,9 +1,9 @@
 var cacheName = 'digital-clock';
 var filesToCache = [
-  '/clock/',
-  '/clock/index.html',
-  '/clock/clock.css',
-  '/clock/clock.js'
+  '/8-segment-clock/',
+  '/8-segment-clock/index.html',
+  '/8-segment-clock/clock.css',
+  '/8-segment-clock/clock.js'
 ];
 
 /* Start the service worker and cache all of the app's content */
