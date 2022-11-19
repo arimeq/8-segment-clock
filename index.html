@@ -28,7 +28,7 @@
   <div id="clock"></div>
   <script type="module">
   import { buildClock, writeClock, switchColor } from './src/clock.js';
-  import { addColor, getColorFromHash } from './src/config.js';
+  import { addColor, getColorFromHash, reload } from './src/config.js';
 
   /**
    * Clock runner
@@ -55,12 +55,13 @@
   [...document.querySelector('#colors').children].forEach(div => {
     const color = div.classList.item(1);
     addColor(color);
-    div.addEventListener('click', () => location.hash = color);
+    div.addEventListener('click', () => reload(color));
   });
   window.addEventListener('hashchange', () => switchColor(getColorFromHash()));
   /**
    * Build & run!
    */
+  reload(); // load default color
   buildClock(document.querySelector('#clock'), getColorFromHash(), runClock);
 
   /**

@@ -13,3 +13,5 @@ export const getColorFromHash = () => {
   }
   return 'red';
 };
+
+export const reload = (color = colors[0]) => location.replace(`#${color}`);
