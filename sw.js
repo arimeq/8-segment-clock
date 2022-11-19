@@ -3,7 +3,11 @@ var filesToCache = [
   '/8-segment-clock/',
   '/8-segment-clock/index.html',
   '/8-segment-clock/clock.css',
-  '/8-segment-clock/clock.js'
+  '/8-segment-clock/clock.png',
+  '/8-segment-clock/src/clock.js',
+  '/8-segment-clock/src/config.js',
+  '/8-segment-clock/src/field.js',
+  '/8-segment-clock/src/dots.js'
 ];
 
 /* Start the service worker and cache all of the app's content */
