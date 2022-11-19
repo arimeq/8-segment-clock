@@ -14,4 +14,14 @@ export const getColorFromHash = () => {
   return 'red';
 };
 
-export const reload = (color = colors[0]) => location.replace(`#${color}`);
+export const reload = color => {
+  let hash = `#${color}`;
+  if (!color) {
+    const cachedColor = localStorage.getItem('color');
+    const defaultColor = cachedColor ? cachedColor : colors[0];
+    hash = `#${defaultColor}`;
+  } else {
+    localStorage.setItem('color', color);
+  }
+  location.replace(hash);
+};
