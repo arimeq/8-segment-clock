@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <title>Digital Clock</title>
   <link rel="stylesheet" href="./clock.css"/>
+  <script src="src/jscolor.min.js"></script>
 </head>
 <body>
   <div id="config">
@@ -23,6 +24,7 @@
       <div class="color ocean"></div>
       <div class="color blue"></div>
       <div class="color darkblue"></div>
+      <div class="color custom" data-jscolor="{}" id="custom"></div>
     </div>
   </div>
   <div id="clock"></div>
@@ -72,6 +74,16 @@
       .then(() => { console.log('wake log acquired'); })
       .catch((e) => { alert('failed to acquire wake lock'); })
       ;
+  }
+  /**
+   * handler to set custom color
+   */
+  jscolor.install();
+  const custom = document.querySelector('#custom');
+  custom.jscolor.fromString(localStorage.getItem('colorHex') || '#fff');
+  custom.jscolor.onChange = function setCustomColor() {
+    const color = this.toHEXString();
+    reload('custom', color);
   }
 </script>
 </body>

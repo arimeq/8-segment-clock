@@ -14,14 +14,22 @@ export const getColorFromHash = () => {
   return 'red';
 };
 
-export const reload = color => {
-  let hash = `#${color}`;
-  if (!color) {
+export const reload = (colorName, colorHex) => {
+  let hash = `#${colorName}`;
+  if (colorHex) {
+    document.documentElement.style.setProperty('--custom', colorHex);
+  }
+  if (!colorName) {
     const cachedColor = localStorage.getItem('color');
+    const cachedColorHex = localStorage.getItem('colorHex');
     const defaultColor = cachedColor ? cachedColor : colors[0];
     hash = `#${defaultColor}`;
+    if (cachedColorHex) {
+      document.documentElement.style.setProperty('--custom', cachedColorHex);
+    }
   } else {
-    localStorage.setItem('color', color);
+    localStorage.setItem('color', colorName);
+    localStorage.setItem('colorHex', colorHex);
   }
   location.replace(hash);
 };

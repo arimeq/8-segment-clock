@@ -6,6 +6,7 @@
   --ocean: #08d8ff;
   --blue: #6161e5;
   --darkblue: #0000ff;
+  --custom: #fff;
 
   --glow-size: 15px;
   --dim-opacity: 0.08;
@@ -29,6 +30,8 @@ body { background: black; display: flex; justify-content: center; align-items: c
 .field .red { background-color: var(--red); }
 #colors .orange,
 .field .orange { background-color: var(--orange); }
+#colors .custom,
+.field .custom { background-color: var(--custom); }
 
 .field.blue { filter: drop-shadow(0 0 var(--glow-size) var(--blue)); }
 .field.darkblue { filter: drop-shadow(0 0 var(--glow-size) var(--darkblue)); }
@@ -37,6 +40,7 @@ body { background: black; display: flex; justify-content: center; align-items: c
 .field.ocean { filter: drop-shadow(0 0 var(--glow-size) var(--ocean)); }
 .field.red { filter: drop-shadow(0 0 var(--glow-size) var(--red)); }
 .field.orange { filter: drop-shadow(0 0 var(--glow-size) var(--orange)); }
+.field.custom { filter: drop-shadow(0 0 var(--glow-size) var(--custom)); }
 svg.field polygon { stroke: black; }
 svg.field .blue { fill: var(--blue); }
 svg.field .darkblue { fill: var(--darkblue); }
@@ -45,6 +49,7 @@ svg.field .yellow { fill: var(--yellow); }
 svg.field .ocean { fill: var(--ocean); }
 svg.field .red { fill: var(--red); }
 svg.field .orange { fill: var(--orange); }
+svg.field .custom { fill: var(--custom); }
 svg.field .lit { opacity: 1; animation: 0.5s fadeIn; }
 svg.field .dim { opacity: var(--dim-opacity); }
 @keyframes fadeIn {
