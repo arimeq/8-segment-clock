@@ -114,7 +114,7 @@
     timerValue = timeStrToInt(this.nextElementSibling.value);
     timerInitialized = true;
   });
-  setTimerButton.nextElementSibling.addEventListener('blur', function() {
+  setTimerButton.nextElementSibling.addEventListener('change', function() {
     timerValue = timeStrToInt(this.value);
     timerInitialized = true;
   });
