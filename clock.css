@@ -131,8 +131,10 @@ svg.field .dim { opacity: var(--dim-opacity); }
 #options {
   position: absolute;
   width: 300px;
-  left: 0px;
-  top: 40px;
+  margin-top: -136px;
+  margin-left: -17px;
+  padding: 50px;
+  padding-top: 125px;
   -webkit-font-smoothing: antialiased;
   /* to stop flickering of text in safari */
   transform-origin: 0% 0%;
