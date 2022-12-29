@@ -6,11 +6,10 @@ export class Dots {
   }
 
   createRect(y) {
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttributeNS(null, 'x', '10');
-    rect.setAttributeNS(null, 'y', y);
-    rect.setAttributeNS(null, 'width', '10');
-    rect.setAttributeNS(null, 'height', '10');
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    rect.setAttributeNS(null, 'cx', '15');
+    rect.setAttributeNS(null, 'cy', Number(y) + 5);
+    rect.setAttributeNS(null, 'r', '8');
     rect.classList.add(this.color);
     return rect;
   }
@@ -28,7 +27,7 @@ export class Dots {
     svg.setAttributeNS(null, 'width', '30');
     svg.setAttributeNS(null, 'height', '200');
     svg.setAttributeNS(null, 'version', '1.1');
-    svg.classList.add('field', this.color);
+    svg.classList.add('field', 'dots', this.color);
     const topDot = this.createRect(75);
     const botDot = this.createRect(125);
     svg.appendChild(topDot);
@@ -36,3 +35,5 @@ export class Dots {
     return [svg, topDot, botDot];
   }
 }
+
+export const generateDots = color => new Dots(color);

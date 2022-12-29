@@ -1,6 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+  let timerInitialized = false;
+  let timerValue = 210; // w sekundach
+  let timeoutHandle = null;
+
+  function startTimer() {
+    function progressTimer() {
+      timerValue--;
+      if (timerValue > 0) {
+        timeoutHandle = setTimeout(progressTimer, 1000);
+      }
+    }
+    progressTimer();
+  }
+
+  function stopTimer() {
+    clearTimeout(timeoutHandle);
+  }
+
+  /**
+   * Service worker setup
+   */
+   window.onload = () => {
+    'use strict';
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    /**
+     * Make sure screen is always on when run on Chrome
+     */
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request()
+        .catch((e) => { console.warn('failed to acquire wake lock'); })
+        ;
+    }
+  }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -9,6 +47,7 @@
   <title>Digital Clock</title>
   <link rel="stylesheet" href="./clock.css"/>
   <script src="src/jscolor.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
   <div id="config">
@@ -16,15 +55,31 @@
     <span></span>  <!-- hamburger top -->
     <span></span>  <!-- hamburger middle -->
     <span></span>  <!-- hamburger bottom -->
-    <div id="colors">
-      <div class="color red"></div>
-      <div class="color orange"></div>
-      <div class="color yellow"></div>
-      <div class="color green"></div>
-      <div class="color ocean"></div>
-      <div class="color blue"></div>
-      <div class="color darkblue"></div>
-      <div class="color custom" data-jscolor="{}" id="custom"></div>
+    <div id="options">
+      <div id="colors">
+        <i class="material-symbols-outlined">palette</i>
+        <div class="color red"></div>
+        <div class="color orange"></div>
+        <div class="color yellow"></div>
+        <div class="color green"></div>
+        <div class="color ocean"></div>
+        <div class="color blue"></div>
+        <div class="color darkblue"></div>
+        <div class="color custom" data-jscolor="{}" id="custom"></div>
+      </div>
+      <div id="timer">
+        <fieldset>
+          <i class="material-symbols-outlined" id="set-timer">timer</i>
+          <input size="6" value="15:00" name="set-time">
+          <i class="material-symbols-outlined" id="start-timer">play_circle</i>
+          <i class="material-symbols-outlined" id="pause-timer" style="display:none">pause_circle</i>
+        </fieldset>
+        <!-- fieldset id="add-time">
+          <i class="material-symbols-outlined">more_time</i>
+          <input size="4" value="30" name="add-time">
+        </fieldset -->
+        <i class="material-symbols-outlined" id="stop-timer">timer_off</i>
+      </div>
     </div>
   </div>
   <div id="clock"></div>
@@ -32,49 +87,84 @@
   import { buildClock, writeClock, switchColor } from './src/clock.js';
   import { addColor, getColorFromHash, reload } from './src/config.js';
 
-  /**
-   * Clock runner
-   */
-  function runClock() {
-    document.title = writeClock();
-    window.requestAnimationFrame(runClock);
-  }
-
-  /**
-   * Service worker setup
-   */
-  window.onload = () => {
-    'use strict';
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
-    }
-  }
 
   /**
    * Poor man's config widget
    */
-  [...document.querySelector('#colors').children].forEach(div => {
+  const optionsEl = document.querySelector('#options');
+  const timerControls = optionsEl.querySelector('#timer');
+  const setTimerButton = timerControls.querySelector('#set-timer');
+  const startTimerButton = timerControls.querySelector('#start-timer');
+  const stopTimerButton = timerControls.querySelector('#stop-timer');
+  const pauseTimerButton = timerControls.querySelector('#pause-timer');
+
+  startTimerButton.addEventListener('click', function() {
+    startTimer();
+    this.style.display = 'none';
+    this.nextElementSibling.style.display = 'inline';
+  });
+  pauseTimerButton.addEventListener('click', stopTimer);
+  stopTimerButton.addEventListener('click', () => {
+    stopTimer();
+    timerInitialized = false;
+    startTimerButton.style.display = 'inline';
+    pauseTimerButton.style.display = 'none';
+  });
+  setTimerButton.addEventListener('click', function() {
+    timerValue = timeStrToInt(this.nextElementSibling.value);
+    timerInitialized = true;
+  });
+  setTimerButton.nextElementSibling.addEventListener('blur', function() {
+    timerValue = timeStrToInt(this.value);
+    timerInitialized = true;
+  });
+
+  [...optionsEl.querySelector('#colors').children].forEach(div => {
     const color = div.classList.item(1);
     addColor(color);
     div.addEventListener('click', () => reload(color));
   });
   window.addEventListener('hashchange', () => switchColor(getColorFromHash()));
+
+  const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
+  const getTimer = () => {
+    // timerValue is total seconds
+    const minutesFloat = timerValue / 60;
+    const hoursInt = Math.floor(minutesFloat / 60);
+
+    const hours = (hoursInt > 0) ? hoursInt.toString().padStart(2, 0): '';
+    const minutes = Math.floor(minutesFloat - (hours * 60)).toString().padStart(2, 0);
+    const seconds = (timerValue % 60).toString().padStart(2, 0);
+
+    return `${hours}${minutes}${seconds}`;
+  };
+
+  function timeStrToInt(timeStr = '') {
+    const [hours, minutes, seconds] = timeStr.replace(/:/g, '').padStart(6, 0).match(/\d{2}/g);
+    return Number(seconds) + Number(minutes) * 60 + Number(hours) * 3600;
+  }
+
+  function getTimeString() {
+    if (timerInitialized) {
+      return getTimer();
+    }
+    return showTime();
+  }
+
+  /**
+   * Clock runner
+   */
+  function runClock() {
+    document.title = writeClock(getTimeString());
+    window.requestAnimationFrame(runClock);
+  }
+
   /**
    * Build & run!
    */
   reload(); // load default color
   buildClock(document.querySelector('#clock'), getColorFromHash(), runClock);
 
-  /**
-   * Make sure screen is always on when run on Chrome
-   */
-  if ('wakeLock' in navigator) {
-    navigator.wakeLock.request()
-      .then(() => { console.log('wake log acquired'); })
-      .catch((e) => { alert('failed to acquire wake lock'); })
-      ;
-  }
   /**
    * handler to set custom color
    */
