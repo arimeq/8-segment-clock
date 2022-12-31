@@ -7,13 +7,18 @@
   let timeoutHandle = null;
 
   function startTimer() {
-    function progressTimer() {
-      timerValue--;
+    function scheduleNext() {
       if (timerValue > 0) {
         timeoutHandle = setTimeout(progressTimer, 1000);
       }
     }
-    progressTimer();
+
+    function progressTimer() {
+      timerValue--;
+      scheduleNext();
+    }
+
+    scheduleNext();
   }
 
   function stopTimer() {
