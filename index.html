@@ -3,26 +3,37 @@
 <head>
   <script>
   let timerInitialized = false;
-  let timerValue = 210; // w sekundach
-  let timeoutHandle = null;
+  let timerRemaining = 210 * 1000; // w milisekundach, gdy timer stoi
+  let timerEnd = null; // Date.now() końca odliczania, gdy timer biegnie
+
+  /**
+   * Timer is driven by its end timestamp, not by ticking setTimeout:
+   * it stays exact when the page is throttled or in the background.
+   */
+  function setTimer(seconds) {
+    timerRemaining = seconds * 1000;
+    if (timerEnd !== null) {
+      timerEnd = Date.now() + timerRemaining;
+    }
+    timerInitialized = true;
+  }
 
   function startTimer() {
-    function scheduleNext() {
-      if (timerValue > 0) {
-        timeoutHandle = setTimeout(progressTimer, 1000);
-      }
+    if (timerEnd === null) {
+      timerEnd = Date.now() + timerRemaining;
     }
-
-    function progressTimer() {
-      timerValue--;
-      scheduleNext();
-    }
-
-    scheduleNext();
   }
 
   function stopTimer() {
-    clearTimeout(timeoutHandle);
+    if (timerEnd !== null) {
+      timerRemaining = Math.max(0, timerEnd - Date.now());
+      timerEnd = null;
+    }
+  }
+
+  function timerSecondsLeft() {
+    const ms = (timerEnd === null) ? timerRemaining : Math.max(0, timerEnd - Date.now());
+    return Math.ceil(ms / 1000);
   }
 
   /**
@@ -52,7 +63,7 @@
   <title>Digital Clock</title>
   <link rel="stylesheet" href="./clock.css"/>
   <script src="src/jscolor.min.js"></script>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link rel="stylesheet" href="./fonts/material-symbols.css"/>
 </head>
 <body>
   <div id="config">
@@ -108,7 +119,11 @@
     this.style.display = 'none';
     this.nextElementSibling.style.display = 'inline';
   });
-  pauseTimerButton.addEventListener('click', stopTimer);
+  pauseTimerButton.addEventListener('click', function() {
+    stopTimer();
+    this.style.display = 'none';
+    this.previousElementSibling.style.display = 'inline';
+  });
   stopTimerButton.addEventListener('click', () => {
     stopTimer();
     timerInitialized = false;
@@ -116,12 +131,10 @@
     pauseTimerButton.style.display = 'none';
   });
   setTimerButton.addEventListener('click', function() {
-    timerValue = timeStrToInt(this.nextElementSibling.value);
-    timerInitialized = true;
+    setTimer(timeStrToInt(this.nextElementSibling.value));
   });
   setTimerButton.nextElementSibling.addEventListener('change', function() {
-    timerValue = timeStrToInt(this.value);
-    timerInitialized = true;
+    setTimer(timeStrToInt(this.value));
   });
 
   [...optionsEl.querySelector('#colors').children].forEach(div => {
@@ -133,7 +146,7 @@
 
   const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
   const getTimer = () => {
-    // timerValue is total seconds
+    const timerValue = timerSecondsLeft(); // total seconds
     const minutesFloat = timerValue / 60;
     const hoursInt = Math.floor(minutesFloat / 60);
 

@@ -24,12 +24,14 @@ export const reload = (colorName, colorHex) => {
     const cachedColorHex = localStorage.getItem('colorHex');
     const defaultColor = cachedColor ? cachedColor : colors[0];
     hash = `#${defaultColor}`;
-    if (cachedColorHex) {
+    if (cachedColorHex && CSS.supports('color', cachedColorHex)) {
       document.documentElement.style.setProperty('--custom', cachedColorHex);
     }
   } else {
     localStorage.setItem('color', colorName);
-    localStorage.setItem('colorHex', colorHex);
+    if (colorHex) {
+      localStorage.setItem('colorHex', colorHex);
+    }
   }
   location.replace(hash);
 };
