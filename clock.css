@@ -70,7 +70,8 @@ svg.field .orange { fill: var(--orange); }
 svg.field .custom { fill: var(--custom); }
 svg.field .lit { opacity: 1; animation: 0.5s fadeIn; }
 svg.field .dim { opacity: var(--dim-opacity); }
-/* .dots { opacity: 1; animation: fadeIn 0.5s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);} */
+.dots circle { transition: opacity 0.15s; }
+.dots.off circle { opacity: var(--dim-opacity); }
 @keyframes fadeIn {
   from { opacity: var(--dim-opacity); }
   to { opacity: 1; }
@@ -81,7 +82,9 @@ svg.field .dim { opacity: var(--dim-opacity); }
   top: 20px;
   left: 20px;
   z-index: 1;
+  transition: opacity 0.5s;
 }
+#config.hidden { opacity: 0; pointer-events: none; }
 
 /* Pure CSS hamburger taken from https://codepen.io/erikterwan/pen/EVzeRP, MIT license */
 
@@ -155,3 +158,11 @@ i.material-symbols-outlined { color: white; padding-right: 8px;;}
 #options fieldset { margin: 0; padding: 0; border: none; display: flex; }
 #options fieldset > input { text-align: right; }
 #options i { cursor: pointer; }
+#options label { color: white; font-family: sans-serif; cursor: pointer; }
+
+#status {
+  position: absolute;
+  bottom: 20px;
+  color: #555;
+  font-family: sans-serif;
+}
