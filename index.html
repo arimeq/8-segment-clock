@@ -55,7 +55,7 @@
           <input size="6" value="15:00" name="set-time">
           <i class="material-symbols-outlined" id="start-timer">play_circle</i>
           <i class="material-symbols-outlined" id="pause-timer" style="display:none">pause_circle</i>
-          <i class="material-symbols-outlined" id="pomodoro" title="Pomodoro">nutrition</i>
+          <!-- <i class="material-symbols-outlined" id="pomodoro" title="Pomodoro">nutrition</i> -->
         </fieldset>
         <!-- fieldset id="add-time">
           <i class="material-symbols-outlined">more_time</i>
@@ -76,13 +76,13 @@
   import { Clock } from './src/clock.js';
   import { addColor, getColorFromHash, reload, getOption, setOption } from './src/config.js';
   import { Timer } from './src/timer.js';
-  import { Pomodoro } from './src/pomodoro.js';
+  // import { Pomodoro } from './src/pomodoro.js';
   import { pipSupported, openPip } from './src/pip.js';
 
   const clockEl = document.querySelector('#clock');
   const statusEl = document.querySelector('#status');
   const timer = new Timer();
-  const pomodoro = new Pomodoro(timer, beep);
+  // const pomodoro = new Pomodoro(timer, beep);
   let blinkDots = getOption('blinkDots', false);
   let audio = null;
 
@@ -148,6 +148,21 @@
   showHamburger();
 
   /**
+   * Nightstand mode, Android app only: a tap anywhere dims the screen and the next one brings it back.
+   * Taps in the menu (and the color picker it opens) or the hamburger's corner don't count.
+   */
+  if (window.ClockApp) {
+    let dimmed = false;
+    document.addEventListener('click', e => {
+      if (menuToggle.checked || configEl.contains(e.target) || inCorner(e)) {
+        return;
+      }
+      dimmed = !dimmed;
+      ClockApp.setDimmed(dimmed);
+    });
+  }
+
+  /**
    * Timer & pomodoro
    */
   const optionsEl = document.querySelector('#options');
@@ -157,7 +172,7 @@
   const startTimerButton = timerControls.querySelector('#start-timer');
   const stopTimerButton = timerControls.querySelector('#stop-timer');
   const pauseTimerButton = timerControls.querySelector('#pause-timer');
-  const pomodoroButton = timerControls.querySelector('#pomodoro');
+  // const pomodoroButton = timerControls.querySelector('#pomodoro');
 
   function showRunning(running) {
     startTimerButton.style.display = running ? 'none' : 'inline';
@@ -165,7 +180,7 @@
   }
 
   function setTimer(seconds) {
-    pomodoro.stop();
+    // pomodoro.stop();
     timer.set(seconds);
   }
 
@@ -184,16 +199,16 @@
   });
   stopTimerButton.addEventListener('click', () => {
     timer.reset();
-    pomodoro.stop();
+    // pomodoro.stop();
     showRunning(false);
     closeMenu();
   });
-  pomodoroButton.addEventListener('click', () => {
-    audio = audio || new AudioContext(); // needs a user gesture to be allowed to play
-    pomodoro.start();
-    showRunning(true);
-    closeMenu();
-  });
+  // pomodoroButton.addEventListener('click', () => {
+  //   audio = audio || new AudioContext(); // needs a user gesture to be allowed to play
+  //   pomodoro.start();
+  //   showRunning(true);
+  //   closeMenu();
+  // });
   setTimerButton.addEventListener('click', () => setTimer(timeStrToInt(timerInput.value)));
   timerInput.addEventListener('change', () => setTimer(timeStrToInt(timerInput.value)));
 
@@ -295,12 +310,12 @@
   let frame = null;
 
   function runClock() {
-    pomodoro.tick();
+    // pomodoro.tick();
     clock.setDotsLit(dotsLit());
     document.title = clock.write(getTimeString());
-    if (statusEl.textContent !== pomodoro.label) {
-      statusEl.textContent = pomodoro.label;
-    }
+    // if (statusEl.textContent !== pomodoro.label) {
+    //   statusEl.textContent = pomodoro.label;
+    // }
     const win = clockEl.ownerDocument.defaultView;
     frame = { win, id: win.requestAnimationFrame(runClock) };
   }

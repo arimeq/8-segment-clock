@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -26,6 +27,8 @@ import androidx.webkit.WebViewAssetLoader;
 public class MainActivity extends Activity {
     private static final String START_URL = "https://appassets.androidplatform.net/www/index.html";
     private static final long NAV_DIM_DELAY_MS = 5000;
+    /** Backlight level of the nightstand mode; 0 would let some phones switch the screen off */
+    private static final float NIGHTSTAND_BRIGHTNESS = 0.01f;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable dimNavigation = () -> setNavigationDimmed(true);
@@ -56,8 +59,14 @@ public class MainActivity extends Activity {
                 return assetLoader.shouldInterceptRequest(request.getUrl());
             }
         });
+        // Lets the page tell it runs in the app; the clock's own assets are all it ever loads
+        web.addJavascriptInterface(new Bridge(), "ClockApp");
 
         setContentView(web);
+        // The old Black theme leaves the bar background to the system, and One UI then
+        // paints it light grey in light mode; take it over so the black page shows through
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setNavigationBarColor(Color.BLACK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // No translucent scrim behind the nav buttons; keep the bar as black as the page
             getWindow().setNavigationBarContrastEnforced(false);
@@ -108,6 +117,21 @@ public class MainActivity extends Activity {
             wakeNavigation();
         }
         return super.dispatchTouchEvent(event);
+    }
+
+    /** Called from the page */
+    private class Bridge {
+        /** Nightstand mode: turn the backlight down to the minimum, or back to the system setting */
+        @JavascriptInterface
+        public void setDimmed(boolean dimmed) {
+            runOnUiThread(() -> {
+                WindowManager.LayoutParams params = getWindow().getAttributes();
+                params.screenBrightness = dimmed
+                        ? NIGHTSTAND_BRIGHTNESS
+                        : WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+                getWindow().setAttributes(params);
+            });
+        }
     }
 
     /** Show the nav buttons at full brightness, then dim them after a while without touches. */
