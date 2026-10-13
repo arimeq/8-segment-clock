@@ -2,40 +2,6 @@
 <html lang="en">
 <head>
   <script>
-  let timerInitialized = false;
-  let timerRemaining = 210 * 1000; // w milisekundach, gdy timer stoi
-  let timerEnd = null; // Date.now() końca odliczania, gdy timer biegnie
-
-  /**
-   * Timer is driven by its end timestamp, not by ticking setTimeout:
-   * it stays exact when the page is throttled or in the background.
-   */
-  function setTimer(seconds) {
-    timerRemaining = seconds * 1000;
-    if (timerEnd !== null) {
-      timerEnd = Date.now() + timerRemaining;
-    }
-    timerInitialized = true;
-  }
-
-  function startTimer() {
-    if (timerEnd === null) {
-      timerEnd = Date.now() + timerRemaining;
-    }
-  }
-
-  function stopTimer() {
-    if (timerEnd !== null) {
-      timerRemaining = Math.max(0, timerEnd - Date.now());
-      timerEnd = null;
-    }
-  }
-
-  function timerSecondsLeft() {
-    const ms = (timerEnd === null) ? timerRemaining : Math.max(0, timerEnd - Date.now());
-    return Math.ceil(ms / 1000);
-  }
-
   /**
    * Service worker setup
    */
@@ -66,7 +32,7 @@
   <link rel="stylesheet" href="./fonts/material-symbols.css"/>
 </head>
 <body>
-  <div id="config">
+  <div id="config" class="hidden">
     <input type="checkbox">
     <span></span>  <!-- hamburger top -->
     <span></span>  <!-- hamburger middle -->
@@ -89,6 +55,7 @@
           <input size="6" value="15:00" name="set-time">
           <i class="material-symbols-outlined" id="start-timer">play_circle</i>
           <i class="material-symbols-outlined" id="pause-timer" style="display:none">pause_circle</i>
+          <i class="material-symbols-outlined" id="pomodoro" title="Pomodoro">nutrition</i>
         </fieldset>
         <!-- fieldset id="add-time">
           <i class="material-symbols-outlined">more_time</i>
@@ -96,65 +63,202 @@
         </fieldset -->
         <i class="material-symbols-outlined" id="stop-timer">timer_off</i>
       </div>
+      <div id="display">
+        <label><input type="checkbox" id="show-seconds"> Seconds</label>
+        <label><input type="checkbox" id="blink-dots"> Blinking dots</label>
+        <i class="material-symbols-outlined" id="pip" title="Always on top" style="display:none">picture_in_picture_alt</i>
+      </div>
     </div>
   </div>
   <div id="clock"></div>
+  <div id="status"></div>
   <script type="module">
-  import { buildClock, writeClock, switchColor } from './src/clock.js';
-  import { addColor, getColorFromHash, reload } from './src/config.js';
+  import { Clock } from './src/clock.js';
+  import { addColor, getColorFromHash, reload, getOption, setOption } from './src/config.js';
+  import { Timer } from './src/timer.js';
+  import { Pomodoro } from './src/pomodoro.js';
+  import { pipSupported, openPip } from './src/pip.js';
 
+  const clockEl = document.querySelector('#clock');
+  const statusEl = document.querySelector('#status');
+  const timer = new Timer();
+  const pomodoro = new Pomodoro(timer, beep);
+  let blinkDots = getOption('blinkDots', false);
+  let audio = null;
 
   /**
-   * Poor man's config widget
+   * Short beep marking the next pomodoro phase
+   */
+  function beep() {
+    if (!audio) {
+      return;
+    }
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.frequency.value = 880;
+    gain.gain.value = 0.2;
+    oscillator.connect(gain).connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.3);
+  }
+
+  /**
+   * Config panel: the hamburger hides after a while and shows up again
+   * on mouse movement in the top-left corner, a touch there, or a swipe from the left edge
+   */
+  const HAMBURGER_TIMEOUT = 5000;
+  const CORNER_SIZE = 150;
+  const EDGE_SIZE = 30;
+  const configEl = document.querySelector('#config');
+  const menuToggle = configEl.querySelector('input[type=checkbox]');
+  let hideHandle = null;
+  let swipeStartX = null;
+
+  function showHamburger() {
+    configEl.classList.remove('hidden');
+    clearTimeout(hideHandle);
+    hideHandle = setTimeout(() => {
+      if (!menuToggle.checked) {
+        configEl.classList.add('hidden');
+      }
+    }, HAMBURGER_TIMEOUT);
+  }
+
+  function closeMenu() {
+    menuToggle.checked = false;
+    showHamburger();
+  }
+
+  const inCorner = ({ clientX, clientY }) => clientX < CORNER_SIZE && clientY < CORNER_SIZE;
+  menuToggle.addEventListener('change', showHamburger);
+  document.addEventListener('mousemove', e => inCorner(e) && showHamburger());
+  document.addEventListener('touchstart', e => {
+    const touch = e.touches[0];
+    if (inCorner(touch)) {
+      showHamburger();
+    }
+    swipeStartX = (touch.clientX < EDGE_SIZE) ? touch.clientX : null;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (swipeStartX !== null && e.touches[0].clientX - swipeStartX > EDGE_SIZE) {
+      swipeStartX = null;
+      showHamburger();
+    }
+  }, { passive: true });
+  showHamburger();
+
+  /**
+   * Timer & pomodoro
    */
   const optionsEl = document.querySelector('#options');
   const timerControls = optionsEl.querySelector('#timer');
   const setTimerButton = timerControls.querySelector('#set-timer');
+  const timerInput = timerControls.querySelector('input');
   const startTimerButton = timerControls.querySelector('#start-timer');
   const stopTimerButton = timerControls.querySelector('#stop-timer');
   const pauseTimerButton = timerControls.querySelector('#pause-timer');
+  const pomodoroButton = timerControls.querySelector('#pomodoro');
 
-  startTimerButton.addEventListener('click', function() {
-    startTimer();
-    this.style.display = 'none';
-    this.nextElementSibling.style.display = 'inline';
+  function showRunning(running) {
+    startTimerButton.style.display = running ? 'none' : 'inline';
+    pauseTimerButton.style.display = running ? 'inline' : 'none';
+  }
+
+  function setTimer(seconds) {
+    pomodoro.stop();
+    timer.set(seconds);
+  }
+
+  startTimerButton.addEventListener('click', () => {
+    if (!timer.initialized) {
+      setTimer(timeStrToInt(timerInput.value));
+    }
+    timer.start();
+    showRunning(true);
+    closeMenu();
   });
-  pauseTimerButton.addEventListener('click', function() {
-    stopTimer();
-    this.style.display = 'none';
-    this.previousElementSibling.style.display = 'inline';
+  pauseTimerButton.addEventListener('click', () => {
+    timer.stop();
+    showRunning(false);
+    closeMenu();
   });
   stopTimerButton.addEventListener('click', () => {
-    stopTimer();
-    timerInitialized = false;
-    startTimerButton.style.display = 'inline';
-    pauseTimerButton.style.display = 'none';
+    timer.reset();
+    pomodoro.stop();
+    showRunning(false);
+    closeMenu();
   });
-  setTimerButton.addEventListener('click', function() {
-    setTimer(timeStrToInt(this.nextElementSibling.value));
+  pomodoroButton.addEventListener('click', () => {
+    audio = audio || new AudioContext(); // needs a user gesture to be allowed to play
+    pomodoro.start();
+    showRunning(true);
+    closeMenu();
   });
-  setTimerButton.nextElementSibling.addEventListener('change', function() {
-    setTimer(timeStrToInt(this.value));
-  });
+  setTimerButton.addEventListener('click', () => setTimer(timeStrToInt(timerInput.value)));
+  timerInput.addEventListener('change', () => setTimer(timeStrToInt(timerInput.value)));
 
-  [...optionsEl.querySelector('#colors').children].forEach(div => {
+  /**
+   * Colors
+   */
+  optionsEl.querySelectorAll('#colors > .color').forEach(div => {
     const color = div.classList.item(1);
     addColor(color);
-    div.addEventListener('click', () => reload(color));
+    div.addEventListener('click', () => {
+      reload(color);
+      if (color !== 'custom') {
+        closeMenu(); // custom one opens the color picker
+      }
+    });
   });
-  window.addEventListener('hashchange', () => switchColor(getColorFromHash()));
+  window.addEventListener('hashchange', () => clock.setColor(getColorFromHash()));
 
-  const showTime = () => (new Date()).toLocaleTimeString().replace(/:/g, '');
+  /**
+   * Display options
+   */
+  const showSecondsInput = optionsEl.querySelector('#show-seconds');
+  const blinkDotsInput = optionsEl.querySelector('#blink-dots');
+  const pipButton = optionsEl.querySelector('#pip');
+
+  showSecondsInput.checked = getOption('showSeconds', true);
+  blinkDotsInput.checked = blinkDots;
+  showSecondsInput.addEventListener('change', () => {
+    setOption('showSeconds', showSecondsInput.checked);
+    clock.setShowSeconds(showSecondsInput.checked);
+    closeMenu();
+  });
+  blinkDotsInput.addEventListener('change', () => {
+    blinkDots = blinkDotsInput.checked;
+    setOption('blinkDots', blinkDots);
+    closeMenu();
+  });
+  if (pipSupported) {
+    pipButton.style.display = 'inline-block';
+    pipButton.addEventListener('click', () => {
+      closeMenu();
+      openPip(clockEl, restartClock).catch(e => console.warn('failed to open picture-in-picture', e));
+    });
+  }
+
+  /**
+   * What to display
+   */
+  const pad = num => num.toString().padStart(2, 0);
+
+  const showTime = () => {
+    const now = new Date();
+    return `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  };
+
   const getTimer = () => {
-    const timerValue = timerSecondsLeft(); // total seconds
-    const minutesFloat = timerValue / 60;
-    const hoursInt = Math.floor(minutesFloat / 60);
-
-    const hours = (hoursInt > 0) ? hoursInt.toString().padStart(2, 0): '';
-    const minutes = Math.floor(minutesFloat - (hours * 60)).toString().padStart(2, 0);
-    const seconds = (timerValue % 60).toString().padStart(2, 0);
-
-    return `${hours}${minutes}${seconds}`;
+    const total = timer.secondsLeft();
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor(total / 60) % 60;
+    const seconds = total % 60;
+    if (!clock.showSeconds) {
+      // only 4 digits to fill
+      return (hours > 0) ? `${pad(hours)}${pad(minutes)}` : `${pad(minutes)}${pad(seconds)}`;
+    }
+    return `${(hours > 0) ? pad(hours) : ''}${pad(minutes)}${pad(seconds)}`;
   };
 
   function timeStrToInt(timeStr = '') {
@@ -163,25 +267,57 @@
   }
 
   function getTimeString() {
-    if (timerInitialized) {
+    if (timer.initialized) {
       return getTimer();
     }
-    return showTime();
+    const time = showTime();
+    return clock.showSeconds ? time : time.slice(0, 4);
   }
 
   /**
-   * Clock runner
+   * Dots blink in the first half of each second (of the countdown, when the timer runs)
    */
+  function dotsLit() {
+    if (!blinkDots) {
+      return true;
+    }
+    if (timer.initialized) {
+      const ms = timer.msLeft();
+      return !timer.running || ms === 0 || ms % 1000 >= 500;
+    }
+    return Date.now() % 1000 < 500;
+  }
+
+  /**
+   * Clock runner; frames come from the window that currently shows the clock
+   * (the picture-in-picture one keeps running when this tab is in the background)
+   */
+  let frame = null;
+
   function runClock() {
-    document.title = writeClock(getTimeString());
-    window.requestAnimationFrame(runClock);
+    pomodoro.tick();
+    clock.setDotsLit(dotsLit());
+    document.title = clock.write(getTimeString());
+    if (statusEl.textContent !== pomodoro.label) {
+      statusEl.textContent = pomodoro.label;
+    }
+    const win = clockEl.ownerDocument.defaultView;
+    frame = { win, id: win.requestAnimationFrame(runClock) };
+  }
+
+  function restartClock() {
+    if (frame) {
+      frame.win.cancelAnimationFrame(frame.id);
+    }
+    runClock();
   }
 
   /**
    * Build & run!
    */
   reload(); // load default color
-  buildClock(document.querySelector('#clock'), getColorFromHash(), runClock);
+  const clock = new Clock(clockEl, getColorFromHash(), { showSeconds: showSecondsInput.checked });
+  runClock();
 
   /**
    * handler to set custom color

@@ -1,3 +1,5 @@
+import { DisplayElement } from './display-element.js';
+
 const pointsMap = new Map([
   ['a', '20  10 30   0 70   0 80  10 70  20 30  20'],
   ['b', '70  20 80  10 90  20 90  90 80 100 70  90'],
@@ -16,45 +18,25 @@ const lit = (...segm) => {
   [...segm].forEach(seg => seg.classList.replace('dim', 'lit'));
 };
 
-export class Field {
+export class Field extends DisplayElement {
   constructor(color) {
-    this.color = color;
+    super(color);
     this.segments = new Map();
-    this.segments.set('main', this.render());
-    return this;
   }
 
-  createPolygon(points) {
-    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    poly.setAttributeNS(null, 'points', points);
-    poly.classList.add(this.color);
-    poly.classList.add('dim');
-    return poly;
-  }
-
-  render() {
-    if (this.segments.has('main')) {
-      return this.segments.get('main');
-    }
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttributeNS(null, 'width', 100);
-    svg.setAttributeNS(null, 'height', 200);
-    svg.setAttributeNS(null, 'version', '1.1');
-    svg.classList.add('field', this.color);
-    for (const [key, value] of pointsMap) {
-      const poly = this.createPolygon(value);
-      this.segments.set(key, poly)
+  build() {
+    const svg = this.createSvg(100, 200);
+    for (const [key, points] of pointsMap) {
+      const poly = this.createShape('polygon', { points });
+      poly.classList.add('dim');
+      this.segments.set(key, poly);
       svg.appendChild(poly);
     }
     return svg;
   }
 
-  setColor(color) {
-    this.segments.forEach(segm => segm.classList.replace(this.color, color));
-    this.color = color;
-  }
-
   display(num) {
+    this.render();
     const a = this.segments.get('a');
     const b = this.segments.get('b');
     const c = this.segments.get('c');
