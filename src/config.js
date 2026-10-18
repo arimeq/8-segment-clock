@@ -35,3 +35,13 @@ export const reload = (colorName, colorHex) => {
   }
   location.replace(hash);
 };
+
+/**
+ * On/off options from the config panel, kept in localStorage
+ */
+export const getOption = (name, defaultValue) => {
+  const value = localStorage.getItem(name);
+  return value === null ? defaultValue : value === 'true';
+};
+
+export const setOption = (name, value) => localStorage.setItem(name, String(value));
