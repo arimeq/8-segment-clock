@@ -148,19 +148,21 @@
   showHamburger();
 
   /**
-   * Nightstand mode, Android app only: a tap anywhere dims the screen and the next one brings it back.
-   * Taps in the menu (and the color picker it opens) or the hamburger's corner don't count.
+   * A tap outside the menu (and the color picker it opens) closes it; with the menu closed,
+   * in the Android app it toggles the nightstand mode, dimming the screen. The hamburger's corner doesn't count.
    */
-  if (window.ClockApp) {
-    let dimmed = false;
-    document.addEventListener('click', e => {
-      if (menuToggle.checked || configEl.contains(e.target) || inCorner(e)) {
-        return;
-      }
+  let dimmed = false;
+  document.addEventListener('click', e => {
+    if (configEl.contains(e.target) || e.target.closest('.jscolor-wrap') || inCorner(e)) {
+      return;
+    }
+    if (menuToggle.checked) {
+      closeMenu();
+    } else if (window.ClockApp) {
       dimmed = !dimmed;
       ClockApp.setDimmed(dimmed);
-    });
-  }
+    }
+  });
 
   /**
    * Timer & pomodoro
@@ -190,18 +192,15 @@
     }
     timer.start();
     showRunning(true);
-    closeMenu();
   });
   pauseTimerButton.addEventListener('click', () => {
     timer.stop();
     showRunning(false);
-    closeMenu();
   });
   stopTimerButton.addEventListener('click', () => {
     timer.reset();
     // pomodoro.stop();
     showRunning(false);
-    closeMenu();
   });
   // pomodoroButton.addEventListener('click', () => {
   //   audio = audio || new AudioContext(); // needs a user gesture to be allowed to play
@@ -218,12 +217,7 @@
   optionsEl.querySelectorAll('#colors > .color').forEach(div => {
     const color = div.classList.item(1);
     addColor(color);
-    div.addEventListener('click', () => {
-      reload(color);
-      if (color !== 'custom') {
-        closeMenu(); // custom one opens the color picker
-      }
-    });
+    div.addEventListener('click', () => reload(color));
   });
   window.addEventListener('hashchange', () => clock.setColor(getColorFromHash()));
 
@@ -239,12 +233,10 @@
   showSecondsInput.addEventListener('change', () => {
     setOption('showSeconds', showSecondsInput.checked);
     clock.setShowSeconds(showSecondsInput.checked);
-    closeMenu();
   });
   blinkDotsInput.addEventListener('change', () => {
     blinkDots = blinkDotsInput.checked;
     setOption('blinkDots', blinkDots);
-    closeMenu();
   });
   if (pipSupported) {
     pipButton.style.display = 'inline-block';

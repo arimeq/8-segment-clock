@@ -1,4 +1,4 @@
-var cacheName = 'digital-clock-v2';
+var cacheName = 'digital-clock-v3';
 var filesToCache = [
   '/8-segment-clock/',
   '/8-segment-clock/index.html',
